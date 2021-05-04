@@ -1142,7 +1142,6 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 		printk("exit_count: %u, exit_time: %llu", atomic_read(&no_of_exits), atomic64_read(&time_for_cycles) );
 	}
 	else if(eax == 0x4FFFFFFE){
-		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
 		eax = atomic_read(&exit_reasons[ecx]);
 		printk("Number of exits at %u is %u", ecx, eax);
 	}
