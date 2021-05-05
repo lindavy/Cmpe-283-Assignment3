@@ -1141,21 +1141,20 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 		ecx = (u32)(atomic64_read(&time_for_cycles) & 0xFFFFFFFF);
 		printk("exit_count: %u, exit_time: %llu", atomic_read(&no_of_exits), atomic64_read(&time_for_cycles) );
 	}
-	else if(eax == 0x4FFFFFFE){
-		if(ecx<0 || ecx>68){
-			// exit reason values skipped in SDM
-			if(ecx == 35 || ecx == 42 || ecx == 65){
-				eax = 0;
-				ebx = 0;
-				ecx = 0;
-				edx = 0xFFFFFFFF;
-			}
-			else{
-				// increment the number of exits that occurred for exit reason <x>
-				eax = atomic_read(&exit_reasons[ecx]);
-			}
+	else if(eax == 0x4FFFFFFE) {
+		// invalid exit reason values (listed in SDM Volume 3, Appendix C)
+		if(ecx<0 || ecx>68 || ecx == 35 || ecx == 42 || ecx == 65) {
+			eax = 0;
+			ebx = 0;
+			ecx = 0;
+			edx = 0xFFFFFFFF;
 		}
-		printk("Number of exits at %u is %u", ecx, eax);
+		else {
+			// increment the number of exits that occurred for exit reason <x>
+			eax = atomic_read(&exit_reasons[ecx]);
+		}
+	}
+	printk("Number of exits at %u is %u", ecx, eax);
 	}
 	else{
 		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);	
