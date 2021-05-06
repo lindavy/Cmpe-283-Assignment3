@@ -1116,7 +1116,9 @@ EXPORT_SYMBOL_GPL(kvm_cpuid);
 
 atomic_t no_of_exits = ATOMIC_INIT(0);
 atomic64_t time_for_cycles = ATOMIC_INIT(0);
-atomic_t exit_reasons[69];
+atomic_t exit_reasons[69] = {0};
+
+
 
 EXPORT_SYMBOL(no_of_exits);
 EXPORT_SYMBOL(time_for_cycles);
@@ -1125,12 +1127,41 @@ EXPORT_SYMBOL(exit_reasons);
 int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 {
 	u32 eax, ebx, ecx, edx;
+	u32 exit_reason_state[69] = {0};
 
 	if (cpuid_fault_enabled(vcpu) && !kvm_require_cpl(vcpu, 0))
 		return 1;
 
 	eax = kvm_rax_read(vcpu);
 	ecx = kvm_rcx_read(vcpu);
+
+
+	//State = 1 indicates that the exit reason is not defined in SDM
+
+	exit_reason_state[35] = 1;
+	exit_reason_state[42] = 1;
+	exit_reason_state[65] = 1;
+	exit_reason_state[38] = 1;
+
+	//State = 2 indicates that the exit reason is not enabled in KVM
+
+	exit_reason_state[3] = 2;
+	exit_reason_state[4] = 2;
+	exit_reason_state[5] = 2;
+	exit_reason_state[6] = 2;
+	exit_reason_state[16] = 2;
+	exit_reason_state[11] = 2;
+	exit_reason_state[17] = 2;
+	exit_reason_state[16] = 2;
+	exit_reason_state[33] = 2;
+	exit_reason_state[34] = 2;
+	exit_reason_state[54] = 2;
+	exit_reason_state[63] = 2;
+	exit_reason_state[64] = 2;
+	exit_reason_state[66] = 2;
+	exit_reason_state[67] = 2;
+	exit_reason_state[68] = 2;
+
 	if(eax == 0x4FFFFFFF){
 		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
 		//return total number of exits
@@ -1141,20 +1172,26 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 		ecx = (u32)(atomic64_read(&time_for_cycles) & 0xFFFFFFFF);
 		printk("exit_count: %u, exit_time: %llu", atomic_read(&no_of_exits), atomic64_read(&time_for_cycles) );
 	}
-	else if(eax == 0x4FFFFFFE) {
-		// invalid exit reason values (listed in SDM Volume 3, Appendix C)
-		if(ecx<0 || ecx>68 || ecx == 35 || ecx == 42 || ecx == 65) {
+	else if(eax == 0x4FFFFFFE){
+		u32 temp = ecx;
+		if(ecx<0 || ecx>68 || exit_reason_state[ecx] == 1){
 			eax = 0;
 			ebx = 0;
 			ecx = 0;
 			edx = 0xFFFFFFFF;
+			printk("Exit reason %u not defined in SDM\n", temp);	
 		}
-		else {
-			// increment the number of exits that occurred for exit reason <x>
+		else if(exit_reason_state[ecx] == 2){
+			eax = 0;
+			ebx = 0;
+			ecx = 0;
+			edx = 0;
+			printk("Exit reason %u not enaled in KVM\n", temp);
+		}
+		else{
 			eax = atomic_read(&exit_reasons[ecx]);
+			printk("Number of exits at %u is %u", ecx, eax);
 		}
-	}
-	printk("Number of exits at %u is %u", ecx, eax);
 	}
 	else{
 		kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);	
