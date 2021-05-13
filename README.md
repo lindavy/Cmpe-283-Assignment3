@@ -8,8 +8,8 @@ more exits performed during certain VM operations? Approximately how many exits 
 boot entail? 
 
 
-4. Of the exit types defined in the SDM, which are the most frequent? Least?
-** Most Frequent **
+4. Of the exit types defined in the SDM, which are the most frequent? Least? <br/>
+**Most Frequent**
 These occured thousands of times, where exit reason 12 (HLT) occurred the least at 3,686 exits. 
 - 0
 - 1
@@ -22,7 +22,7 @@ These occured thousands of times, where exit reason 12 (HLT) occurred the least 
 - 48
 - 49
 
-** Least Frequent **
+**Least Frequent**
 These occurred less than 5 times. 
 - 29
 - 40
