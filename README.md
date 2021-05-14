@@ -7,6 +7,7 @@
 more exits performed during certain VM operations? Approximately how many exits does a full VM 
 boot entail? 
 
+No, the number of exits fluctuates. Each time we execute CPUID from the nested VM, we get values ranging in 500k. Different instructions result in more or less number of exits. A full VM boot entailed about ~1M exits.
 
 4. Of the exit types defined in the SDM, which are the most frequent? Least? <br/>
 **Most Frequent**
@@ -70,3 +71,4 @@ cpuid -l 0x4FFFFFFF
 
 We received the following output: 
 
+<img width="1536" alt="Screen Shot 2021-05-06 at 12 39 19 PM" src="https://user-images.githubusercontent.com/35030604/118211064-5d2b3d00-b420-11eb-9c85-85371a1379ff.png">
